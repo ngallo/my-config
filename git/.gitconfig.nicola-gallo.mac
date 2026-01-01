@@ -1,0 +1,45 @@
+[user]
+	name = Nicola Gallo
+	email = nicolagmt@hotmail.com
+[includeIf "gitdir:~/source/nitro/**"]
+    path = ~/.gitconfig-nitroagility
+[credential]
+	helper = store
+[push]
+	default = current
+[diff]
+    tool = gvimdiff
+    renames = copies
+    mnemonicprefix = true
+	guitool = code
+[color "sh"]
+    branch = auto
+[alias]
+	lg  = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+	lgf  = log --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+	lgH  = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%H%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+	lgfH  = log --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%H%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+	lgv = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+	lgfv = log --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+	lgHv = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%H%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+	lgfHv = log --abbrev-commit --decorate --format=format:'%C(bold blue)%H%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+        showfiles = "!f() { git show --pretty="" --name-status $1; }; f"
+# Comment: You just added this via 'git config --global core.editor "code --wait"'
+[core]
+    editor = code --wait
+# Comment: Start of "Extra Block"
+# Comment: This is to unlock Visual Studio Code as your Git diff and Git merge tool
+[merge]
+    tool = vscode
+	ff = --no-ff
+[mergetool "vscode"]
+    cmd = code --wait $MERGED
+[diff]
+    tool = vscode
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE
+# Comment: End of "Extra Block"
+[mergetool]
+	keepBackup = false
+[pull]
+	ff = false
