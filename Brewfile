@@ -42,6 +42,11 @@ brew "gh"                # GitHub CLI
 brew "glab"              # GitLab CLI
 brew "lazygit"           # TUI for git
 brew "lazydocker"        # TUI for docker
+brew "yazi"              # TUI file manager (Rust, async, blazing)
+brew "ffmpeg"            #   ↳ yazi: video thumbnails
+brew "sevenzip"          #   ↳ yazi: archive preview
+brew "poppler"           #   ↳ yazi: PDF preview
+brew "imagemagick"       #   ↳ yazi: image conversion fallback
 brew "neovim"
 brew "mise"              # runtime manager
 brew "direnv"            # per-dir env

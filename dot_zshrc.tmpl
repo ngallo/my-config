@@ -36,13 +36,49 @@ export MANROFFOPT="-c"
 # ripgrep config (looked up via env)
 export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
-# fzf — global defaults & previews via bat / eza
-export FZF_DEFAULT_OPTS="--height=60% --layout=reverse --border=rounded --info=inline --color=bg+:#1a1b26,bg:#1a1b26,fg:#c0caf5,hl:#7aa2f7,fg+:#c0caf5,hl+:#7aa2f7,border:#3b4261,prompt:#7aa2f7,pointer:#bb9af7,marker:#9ece6a,header:#7dcfff"
+# fzf — hacker-style pickers: Tokyo Night palette, smart previews, useful binds
+{{- if eq .chezmoi.os "darwin" }}
+_CLIPCOPY='pbcopy'
+{{- else }}
+_CLIPCOPY='xclip -selection clipboard'
+{{- end }}
+
+export FZF_DEFAULT_OPTS="
+  --height=80% --layout=reverse --border=rounded --info=inline-right
+  --prompt='❯ ' --pointer='▶' --marker='✓' --separator='─' --scrollbar='▌'
+  --tabstop=2 --cycle
+  --color=bg+:#1a1b26,bg:-1,fg:#c0caf5,hl:#7aa2f7,fg+:#c0caf5:bold,hl+:#bb9af7:bold
+  --color=border:#3b4261,prompt:#7dcfff,pointer:#bb9af7,marker:#9ece6a,header:#f7768e
+  --color=info:#7aa2f7,spinner:#bb9af7,separator:#3b4261,scrollbar:#3b4261
+  --bind=ctrl-/:toggle-preview
+  --bind=ctrl-u:preview-half-page-up
+  --bind=ctrl-d:preview-half-page-down
+  --bind=alt-a:select-all
+  --bind=alt-d:deselect-all
+"
+
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --strict-glob --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --strict-glob --exclude .git'
-export FZF_CTRL_T_OPTS="--preview='bat --color=always --style=numbers --line-range=:200 {}'"
-export FZF_ALT_C_OPTS="--preview='eza --tree --color=always --level=2 {} | head -60'"
+
+# CTRL-T · file picker: multi-select, bat preview, open in editor, copy path
+export FZF_CTRL_T_OPTS="
+  --multi
+  --preview='bat --color=always --style=numbers,changes --line-range=:300 {} 2>/dev/null || eza --tree --color=always --level=2 {}'
+  --preview-window='right,60%,border-left,~3'
+  --header='╭─ enter:accept · ctrl-o:edit · ctrl-y:yank · ctrl-/:toggle · tab:multi ─╮'
+  --bind='ctrl-o:execute(\${EDITOR:-vim} {+})'
+  --bind=\"ctrl-y:execute-silent(printf %s {+} | $_CLIPCOPY)+abort\"
+"
+
+# ALT-C · directory picker: tree with icons + git, open in editor, copy path
+export FZF_ALT_C_OPTS="
+  --preview='eza --tree --level=3 --color=always --icons=always --git {} 2>/dev/null | head -200'
+  --preview-window='right,60%,border-left,~3'
+  --header='╭─ enter:cd · ctrl-o:edit · ctrl-y:yank · ctrl-/:toggle ─╮'
+  --bind='ctrl-o:execute(\${EDITOR:-vim} {})'
+  --bind=\"ctrl-y:execute-silent(printf %s {} | $_CLIPCOPY)+abort\"
+"
 
 # ─── Brew shellenv (macOS) ────────────────────────────────────────────────
 {{- if eq .chezmoi.os "darwin" }}
@@ -119,6 +155,7 @@ command -v eza >/dev/null && {
   alias lt='eza --tree --level=2 --icons=never'
   alias tree='eza --tree --icons=never'
 }
+command -v yazi >/dev/null && alias ya='yazi'
 command -v bat  >/dev/null && alias cat='bat --paging=never --style=plain'
 command -v rg   >/dev/null && alias grep='rg'
 command -v nvim >/dev/null && { alias vim='nvim'; alias vi='nvim'; }
@@ -215,6 +252,39 @@ ge() {
   local f
   f=$(git ls-files | fzf --prompt='edit> ' --preview='bat --color=always --style=numbers --line-range=:200 {}') || return
   "$EDITOR" "$f"
+}
+
+# y — launch yazi and `cd` to the directory you were in when you quit.
+#   Official yazi shell wrapper. Quit with `q` (no cd) or `Q` (cd here).
+y() {
+  command -v yazi >/dev/null || { echo "yazi not installed" >&2; return 127; }
+  local tmp cwd
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(command cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
+}
+
+# xp — smart explorer: pick file *or* directory under $PWD with adaptive preview.
+#   enter → cd (if dir) | open in $EDITOR (if file)
+#   ctrl-o → always open in $EDITOR
+#   ctrl-y → copy absolute path to clipboard
+xp() {
+  local root="${1:-.}" sel
+  sel=$(fd --hidden --strict-glob --exclude .git . "$root" \
+    | fzf --prompt='xp❯ ' \
+          --preview='if [ -d {} ]; then eza --tree --level=3 --color=always --icons=always --git {} | head -200; else bat --color=always --style=numbers,changes --line-range=:300 {} 2>/dev/null; fi' \
+          --preview-window='right,60%,border-left,~3' \
+          --header='╭─ enter:smart · ctrl-o:edit · ctrl-y:yank · ctrl-/:toggle ─╮' \
+          --bind="ctrl-o:execute(\${EDITOR:-vim} {})" \
+          --bind="ctrl-y:execute-silent(printf %s {} | ${_CLIPCOPY})+abort") || return
+  if [[ -d "$sel" ]]; then
+    cd "$sel"
+  else
+    "${EDITOR:-vim}" "$sel"
+  fi
 }
 
 # ─── Keybindings ───────────────────────────────────────────────────────────
