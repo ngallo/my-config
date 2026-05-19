@@ -112,10 +112,12 @@ command -v helm     >/dev/null && source <(helm completion zsh 2>/dev/null)
 # ─── Aliases ───────────────────────────────────────────────────────────────
 alias ls='ls --color=auto 2>/dev/null || ls -G'
 command -v eza >/dev/null && {
-  alias ls='eza --group-directories-first --no-icons'
-  alias ll='eza -lah --git --group-directories-first --no-icons'
-  alias lt='eza --tree --level=2 --no-icons'
-  alias tree='eza --tree --no-icons'
+  # Calm down eza: dim everything except file/dir names.
+  export EZA_COLORS="ur=38;5;245:uw=38;5;245:ux=38;5;245:ue=38;5;245:gr=38;5;245:gw=38;5;245:gx=38;5;245:tr=38;5;245:tw=38;5;245:tx=38;5;245:xa=38;5;245:un=38;5;245:uu=38;5;245:gn=38;5;245:gu=38;5;245:da=38;5;245:sn=38;5;245:sb=38;5;245:gm=38;5;245:ga=38;5;245:gd=38;5;245:gv=38;5;245:df=38;5;245"
+  alias ls='eza --group-directories-first --no-icons --color-scale=none'
+  alias ll='eza -lah --git --group-directories-first --no-icons --color-scale=none'
+  alias lt='eza --tree --level=2 --no-icons --color-scale=none'
+  alias tree='eza --tree --no-icons --color-scale=none'
 }
 command -v bat  >/dev/null && alias cat='bat --paging=never --style=plain'
 command -v rg   >/dev/null && alias grep='rg'

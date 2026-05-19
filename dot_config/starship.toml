@@ -12,23 +12,23 @@ $cmd_duration\
 $character"""
 
 [character]
-success_symbol = "[❯](bold white)"
+success_symbol = "[❯](bold green)"
 error_symbol   = "[❯](bold red)"
-vimcmd_symbol  = "[❮](bold white)"
+vimcmd_symbol  = "[❮](bold green)"
 
 [directory]
 truncation_length = 20
 truncate_to_repo  = false
-style             = "white"
+style             = "bold cyan"
 read_only         = " RO"
 
 [git_branch]
 symbol = ""
 format = "[(\\($branch\\))]($style) "
-style  = "bold white"
+style  = "bold magenta"
 
 [git_status]
-style      = "bold white"
+style      = "bold yellow"
 modified   = "●${count} "
 staged     = "+${count} "
 ahead      = "↑${count} "
