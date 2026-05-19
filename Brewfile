@@ -80,7 +80,7 @@ cask "ghostty"                       # terminal
 cask "visual-studio-code"
 cask "rectangle"                     # window manager
 # cask "docker"                      # Docker Desktop — install manually
-cask "raycast"
+# cask "raycast"                     # install manually
 # cask "keepassxc"                   # password manager — install manually
 # cask "bitwarden"                   # password manager — install manually
 cask "font-jetbrains-mono-nerd-font"
