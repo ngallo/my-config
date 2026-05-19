@@ -110,7 +110,11 @@ command -v kubectl  >/dev/null && source <(kubectl completion zsh 2>/dev/null)
 command -v helm     >/dev/null && source <(helm completion zsh 2>/dev/null)
 
 # ─── Aliases ───────────────────────────────────────────────────────────────
-alias ls='ls --color=auto 2>/dev/null || ls -G'
+{{ if eq .chezmoi.os "darwin" -}}
+alias ls='ls -G'
+{{ else -}}
+alias ls='ls --color=auto'
+{{ end -}}
 command -v eza >/dev/null && {
   # Calm down eza: dim everything except file/dir names.
   export EZA_COLORS="ur=38;5;245:uw=38;5;245:ux=38;5;245:ue=38;5;245:gr=38;5;245:gw=38;5;245:gx=38;5;245:tr=38;5;245:tw=38;5;245:tx=38;5;245:xa=38;5;245:un=38;5;245:uu=38;5;245:gn=38;5;245:gu=38;5;245:da=38;5;245:sn=38;5;245:sb=38;5;245:gm=38;5;245:ga=38;5;245:gd=38;5;245:gv=38;5;245:df=38;5;245"
