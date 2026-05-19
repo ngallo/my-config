@@ -2,9 +2,6 @@
 # Apply with: brew bundle --file=~/Brewfile
 # (chezmoi will also auto-apply via run_onchange_after_30-brew-bundle.sh.tmpl)
 
-tap "homebrew/bundle"
-tap "homebrew/services"
-
 # ─── Core CLI ─────────────────────────────────────────────────────────────
 brew "bash"
 brew "zsh"
@@ -58,14 +55,14 @@ brew "stylua"            # Lua formatter (for nvim configs)
 brew "tree-sitter"
 
 # ─── Languages (mise will manage versions; these are baseline tooling) ───
-brew "go"
+# brew "go"
 brew "rustup-init"
 
 # ─── Containers / cloud ───────────────────────────────────────────────────
 # Docker daemon comes from Docker Desktop (installed separately, GUI app);
 # only the CLI tools are brewed.
-brew "docker"
-brew "docker-compose"
+# brew "docker"
+# brew "docker-compose"
 brew "kubectl"
 brew "k9s"
 brew "helm"
@@ -76,7 +73,7 @@ brew "gnupg"
 brew "age"
 brew "ssh-copy-id"
 brew "bitwarden-cli"     # `bw` — used by chezmoi `{{ bitwarden ... }}` templates
-brew "keepassxc-cli"     # `keepassxc-cli` — CLI access to KeePass DBs
+# keepassxc-cli is shipped inside the `keepassxc` cask below (KeePassXC.app/Contents/MacOS/keepassxc-cli)
 
 # ─── Casks (GUI apps) ─────────────────────────────────────────────────────
 cask "ghostty"                       # terminal
