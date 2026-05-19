@@ -1,0 +1,13 @@
+# ~/.config/mise/config.toml — global runtime defaults.
+# Override per-project with a local .mise.toml.
+
+[tools]
+node    = "lts"
+python  = "3.12"
+# go      = "latest"
+# rust    = "stable"
+
+[settings]
+experimental    = true
+legacy_version_file = true
+not_found_auto_install = true

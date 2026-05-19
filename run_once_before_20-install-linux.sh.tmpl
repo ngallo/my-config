@@ -1,0 +1,54 @@
+{{- /* Linux bootstrap: detect distro, install baseline via native pkg manager. */ -}}
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ ! -r /etc/os-release ]]; then
+  echo "Cannot detect distro (/etc/os-release missing)." >&2
+  exit 1
+fi
+# shellcheck disable=SC1091
+. /etc/os-release
+
+pkgs=(
+  git curl wget unzip ca-certificates gnupg
+  zsh
+  ripgrep fd-find bat fzf jq
+  neovim
+  build-essential
+)
+
+install_deb() {
+  sudo apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${pkgs[@]}"
+  # Debian/Ubuntu quirks: `fdfind`/`batcat` binary names — alias to canonical names.
+  mkdir -p "$HOME/.local/bin"
+  command -v fdfind >/dev/null && ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+  command -v batcat >/dev/null && ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+}
+
+install_rpm() {
+  sudo dnf install -y "${pkgs[@]/build-essential/@development-tools}"
+}
+
+install_arch() {
+  sudo pacman -Sy --noconfirm git curl wget unzip ca-certificates gnupg \
+    zsh ripgrep fd bat fzf jq neovim base-devel
+}
+
+case "${ID}:${ID_LIKE:-}" in
+  ubuntu:*|debian:*|*:*debian*) install_deb ;;
+  fedora:*|rhel:*|*:*rhel*|*:*fedora*) install_rpm ;;
+  arch:*|*:*arch*) install_arch ;;
+  *)
+    echo "Unsupported distro: $ID — install baseline packages manually." >&2
+    exit 0
+    ;;
+esac
+
+# starship / zoxide / atuin / mise / chezmoi via official installers (vendor-neutral)
+curl -sS https://starship.rs/install.sh        | sh -s -- --yes >/dev/null
+curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh >/dev/null
+curl -sSfL https://setup.atuin.sh              | sh -s -- --no-modify-path >/dev/null || true
+curl -sSfL https://mise.run                    | sh
+{{ end -}}

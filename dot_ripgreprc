@@ -1,0 +1,10 @@
+# ~/.ripgreprc — set with RIPGREP_CONFIG_PATH=~/.ripgreprc
+--smart-case
+--hidden
+--max-columns=200
+--max-columns-preview
+--glob=!.git/*
+--glob=!node_modules/*
+--glob=!dist/*
+--glob=!build/*
+--glob=!target/*

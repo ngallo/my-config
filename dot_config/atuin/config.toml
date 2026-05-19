@@ -1,0 +1,17 @@
+# ~/.config/atuin/config.toml — shell history database.
+
+dialect          = "us"
+auto_sync        = true
+sync_frequency   = "10m"
+update_check     = false
+search_mode      = "fuzzy"
+filter_mode      = "global"
+filter_mode_shell_up_key_binding = "session"
+style            = "compact"
+show_preview     = true
+show_help        = true
+exit_mode        = "return-original"
+inline_height    = 25
+
+[stats]
+common_subcommands = ["git", "docker", "kubectl", "cargo", "npm"]

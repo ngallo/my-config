@@ -1,97 +1,147 @@
-# Setup / Config script for configuring OSX, Linux and Windows #
+# my-config — dotfiles managed by [chezmoi](https://www.chezmoi.io)
 
-## Machine Setup ##
+Cross-platform (macOS / Linux) dotfiles for [ngallo](https://github.com/ngallo).
+Templated, idempotent, bootstrappable in one command on a fresh machine.
 
-The machine setup is used to get an empty OSX installation up to where it
-needs to be. It depends heavily on brew.sh and brew cask to install
-everything but it installs these first so it should automate the process of
-building a new osx install.
+---
 
-The machine Setup files are in the Setup folder. There is one generic script,
-mbpsetup.sh that is used to bootstrap brew and cask and then do the
-installation.
+## TL;DR — new machine
 
-This means I can be up and running with a new Mac by typing:
+```bash
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply ngallo
+```
 
-    git clone 'https://github.com/ngallo/BoxConfig.git'
-    cd Box/OSX && bash install-devbox.bash 
+Or, if `chezmoi` is already installed:
 
-There are several 'category scripts' that can be used to set up base
-system, dev tools, image manipulation and so on.
+```bash
+chezmoi init --apply ngallo
+```
 
-Then there are scripts for controlling which machines get what. For example
-dev.bash and keira.bash set up two of my machines. These are just a list of
-categories to install. dev.bash might look like this
+This will:
 
-    #!/bin/bash -eu
-    bash mbpsetup.sh base.bash utils.bash dev.bash
+1. Clone this repo into `~/.local/share/chezmoi`.
+2. Prompt for `name`, `email`, `workEmail`, etc. → stored in `~/.config/chezmoi/chezmoi.toml`.
+3. Run the OS-specific `run_once_before_*` script to install Homebrew (mac) or apt/dnf/pacman packages (Linux), plus baseline tooling (starship, zoxide, atuin, mise, neovim).
+4. Render templates and link files into your home directory.
+5. On macOS, run `brew bundle` against the [`Brewfile`](Brewfile).
 
-### How it works ###
+---
 
-mbpsetup installs xcode commandline tools, homebrew and homebrew cask and then
-sources each of the files on the commandline.
+## What's inside
 
-It provides functions to install brew packages, casks or gems if they
-have not been installed before. If they already exist they don't get run
-again. This is crucial to being able to maintain the script and add
-new packages over time without reinstalling existing packages  (or failing
-part way because they are already there).
+| Path | What it does |
+| --- | --- |
+| [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) | First-run prompts (identity, work paths, install scope). |
+| [`.chezmoiignore`](.chezmoiignore) | Files in this repo chezmoi must NOT apply (README, CI, docs). |
+| [`.chezmoiexternal.toml`](.chezmoiexternal.toml) | Zsh plugins fetched on apply (autosuggestions, syntax-highlighting, fzf-tab, history-substring-search). |
+| [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Pre-commit hooks for this repo (shellcheck, shfmt, stylua, chezmoi verify). |
+| [`dot_zshenv`](dot_zshenv), [`dot_zshrc.tmpl`](dot_zshrc.tmpl) | XDG dirs, completions, plugins, starship/zoxide/atuin/mise/direnv/fzf hooks, fzf-tab, kubectl/gh completions, pro aliases & functions (`take`, `extract`, `port`, `gcb`, `ge`, `fman`). |
+| [`dot_config/starship.toml`](dot_config/starship.toml) | Prompt. |
+| [`dot_config/ghostty/config`](dot_config/ghostty/config) | Ghostty terminal: theme, font, padding, vim-style split keybinds (`cmd+h/j/k/l`). |
+| [`dot_config/git/`](dot_config/git/) | Git: base + `config-work` (via `includeIf`) + `config.local` extension point. Power-user aliases: `lg*`, `wip`/`unwip`, `recent`, `tree`, `prune-all`, `pr`, `today`/`week`, ... |
+| [`dot_config/nvim/`](dot_config/nvim/) | Neovim w/ `lazy.nvim`: telescope, gitsigns, nvim-tree, lualine, treesitter, LSP + cmp, plus pro extras: oil, harpoon, trouble, conform, todo-comments, fidget, flash, lazygit, autopairs, indent guides. |
+| [`dot_config/mise/config.toml`](dot_config/mise/config.toml) | Runtime versions (replaces nvm/pyenv/rbenv). |
+| [`dot_config/atuin/config.toml`](dot_config/atuin/config.toml) | Shell history database. |
+| [`dot_config/bat/config`](dot_config/bat/config) | `bat` defaults. |
+| [`dot_ripgreprc`](dot_ripgreprc) | Default ripgrep flags. |
+| [`Brewfile`](Brewfile) | macOS package list (CLI + casks). |
+| [`run_once_before_05-cleanup-legacy.sh.tmpl`](run_once_before_05-cleanup-legacy.sh.tmpl) | First-apply cleanup of broken symlinks from the old install.sh setup. |
+| [`run_once_before_10-install-darwin.sh.tmpl`](run_once_before_10-install-darwin.sh.tmpl) | One-time macOS bootstrap (CLT + brew + baseline). |
+| [`run_once_before_20-install-linux.sh.tmpl`](run_once_before_20-install-linux.sh.tmpl) | One-time Linux bootstrap (apt/dnf/pacman + baseline). |
+| [`run_onchange_after_30-brew-bundle.sh.tmpl`](run_onchange_after_30-brew-bundle.sh.tmpl) | Re-applies Brewfile whenever it changes. |
+| [`Justfile`](Justfile) | Common commands: `just apply`, `just edit`, `just diff`, `just doctor`, `just nuke-old`, … |
 
-Each of the category scripts simply calls the functions in mbpsetup. So a
-script to install image tools would look like this:
+---
 
-    inst_brew imagemagick
-    inst_brew exiftool
-    inst_cask picasa
+## Daily workflow
 
-## User Configuration ##
+```bash
+just edit zshrc      # edit ~/.zshrc (chezmoi managed)
+just diff            # preview pending changes
+just apply           # apply them
+just update          # git pull + apply + brew bundle
+just doctor          # health check
+```
 
-These are my config files so I can clone them onto a new machine easily.
+Or with chezmoi directly:
 
-There is an install script (install.sh) and a configuration file (install.cfg)
-which control how the various dotfiles will get copied or linked into the home
-directory.
+```bash
+chezmoi edit ~/.zshrc
+chezmoi diff
+chezmoi apply -v
+chezmoi update       # pull + apply
+```
 
-It only needs bash and grep to work. I'm using it on OSX (Darwin), Debian and
-Redhat (Linux) and Msys Windows (MINGW32_NT-6.2)
+---
 
-To use clone the repo and do
+## How `name`/`email` work
 
-     bash install.sh -h
+`~/.config/chezmoi/chezmoi.toml` is generated by [`.chezmoi.toml.tmpl`](.chezmoi.toml.tmpl) on first run. It contains:
 
-for the help
+```toml
+[data]
+name      = "Nicola Gallo"
+email     = "nicolagmt@hotmail.com"
+workEmail = "nicola.gallo@nitroagility.com"
+workRoot  = "source/nitro"
+```
 
-      Usage:     ./install.sh -nv -s source_dir -d dest_dir -m hostname -o os configfile
+The base git config uses `email`; when you `cd ~/source/nitro/<anything>`, git's
+`includeIf "gitdir:~/source/nitro/"` loads `~/.config/git/config-work` which
+overrides `user.email` to `workEmail`. No more two `~/.gitconfig.*` files.
 
-           -n     dry run, don't make any changes
-           -s     source dirrectory. Defaults to the location of install.sh
-           -d     destination directory. Defaults to $HOME
-           -c     copy files instead of linking
-           -v     verbose output
-           -m     override machine hostname (defaults to output of hostname)
-           -o     override operating system (defaults to output of uname)
-           -h     display this message
+Change identity later with `chezmoi edit-config`.
 
-       configfile is a colon seperated list of destination:source:host_pattern:os_pattern
+---
 
-         .bashrc:my_bashrc.bash:satur.*:Linux|Darwin
+## Secrets
 
-	   will link/copy source_dir/my_bashrc.bash to dest_dir/.bashrc if the
-	   hostname begins with satur (saturday, saturn etc..) and uname is either
-	   Darwin or Linux.  Patterns are passed to grep -E  an empty pattern will
-	   match any host/platform
+This repo contains **no secrets**. Tooling installed for credential retrieval:
 
-Edit the config file (install.cfg) or create a new one. Then see what will
-happen
+- **KeePassXC** (offline DB, `keepassxc-cli`) — chezmoi templates can read entries:
+  `{{ keepassxc "Title" "UserName" }}` (after `chezmoi keepassxc-attachment` setup).
+- **Bitwarden CLI** (`bw`) — chezmoi has built-in `bitwarden` / `bitwardenFields`
+  templates: `{{ (bitwarden "item" "github").login.password }}`.
+- **age encryption** — `chezmoi encrypt foo.key > foo.key.age`, then commit the
+  `.age` file. Decrypts on apply with your age key.
 
-     bash install.sh -nv box-lnx.cfg
+The `[encryption]` block in `.chezmoi.toml.tmpl` is preset to `age`.
 
-> **NOTE:** *In order to install plugins you need to open gVIM and execute :PlugInstall*
+---
 
-remove the 'n' to really run it.  Any files that get clobbered will be moved
-to $HOME/backups-yyyymmdd. In the default mode (link) you should be able to
-run it again and nothing will be touched.  In copy mode, the files will keep
-geting backed up
+## Extension points
 
-## ZSH
-https://github.com/ohmyzsh/ohmyzsh
+A few hooks are already in place so additional config (machine-specific,
+private overlay, work-only) can be layered in without forking this repo:
+
+| Hook | Loaded if present |
+| --- | --- |
+| `~/.zshrc.local` | sourced at the end of `~/.zshrc` |
+| `~/.config/git/config.local` | `[include]`'d from `~/.config/git/config` |
+| `~/.config/nvim/lua/local/init.lua` | `pcall(require, "local")` from `init.lua` |
+
+---
+
+## Migrating from the old install.sh setup
+
+Running `chezmoi apply` will auto-clean broken symlinks (the ones pointing at
+the deleted `legacy/` dir) plus a few known-dead files
+([`run_once_before_05-cleanup-legacy.sh.tmpl`](run_once_before_05-cleanup-legacy.sh.tmpl)
+handles `.bash_profile`, `.gitconfig`, `.vimrc`, `.fzf.zsh`, `.p10k.zsh`, …).
+
+For deeper cleanup that touches data-bearing dirs (NVM with installed node
+versions, oh-my-zsh, rbenv, …), opt in explicitly:
+
+```sh
+just nuke-old      # interactive — asks before each removal
+```
+
+---
+
+## CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push:
+
+- `chezmoi verify` — templates parse & resolve.
+- `shellcheck` over all `*.sh` / `*.sh.tmpl`.
+- Apply to a clean container as a smoke test (Ubuntu + macOS runners).

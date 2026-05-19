@@ -1,0 +1,30 @@
+{{- /* macOS bootstrap: Command Line Tools + Homebrew. Idempotent. */ -}}
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ─── Xcode Command Line Tools ─────────────────────────────────────────────
+if ! xcode-select -p >/dev/null 2>&1; then
+  echo "▶ Installing Xcode Command Line Tools (this may pop up a GUI dialog)…"
+  xcode-select --install || true
+  # Wait until installed (polling is fine — first-machine setup only).
+  until xcode-select -p >/dev/null 2>&1; do sleep 10; done
+fi
+
+# ─── Homebrew ─────────────────────────────────────────────────────────────
+if ! command -v brew >/dev/null 2>&1; then
+  echo "▶ Installing Homebrew…"
+  NONINTERACTIVE=1 /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Add to PATH for this script (Apple Silicon vs Intel)
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Minimum tooling so subsequent chezmoi templates work even if Brewfile is skipped.
+brew install --quiet chezmoi git starship zoxide fzf ripgrep fd bat eza delta jq mise neovim
+{{ end -}}

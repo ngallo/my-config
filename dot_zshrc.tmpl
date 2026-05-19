@@ -1,0 +1,231 @@
+{{- /* ~/.zshrc — interactive shell config. Templated via chezmoi. */ -}}
+# ─── PATH ──────────────────────────────────────────────────────────────────
+typeset -U path PATH
+path=(
+  $HOME/.local/bin
+  $HOME/bin
+{{- if eq .chezmoi.os "darwin" }}
+  /opt/homebrew/bin
+  /opt/homebrew/sbin
+  /usr/local/bin
+{{- end }}
+  $path
+)
+export PATH
+
+# ─── History ───────────────────────────────────────────────────────────────
+HISTSIZE=100000
+SAVEHIST=100000
+setopt EXTENDED_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS \
+       INC_APPEND_HISTORY SHARE_HISTORY HIST_VERIFY HIST_EXPIRE_DUPS_FIRST
+
+# ─── Behaviour ─────────────────────────────────────────────────────────────
+setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT PUSHD_TO_HOME \
+       INTERACTIVE_COMMENTS GLOB_DOTS NUMERIC_GLOB_SORT NO_BEEP \
+       EXTENDED_GLOB NULL_GLOB COMPLETE_IN_WORD ALWAYS_TO_END \
+       AUTO_MENU AUTO_LIST PROMPT_SUBST CORRECT
+
+# ─── Editor / pager ────────────────────────────────────────────────────────
+export EDITOR="{{ .editor }}"
+export VISUAL="$EDITOR"
+export PAGER="less"
+export LESS="-FRSXi -j5"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANROFFOPT="-c"
+
+# ripgrep config (looked up via env)
+export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
+
+# fzf — global defaults & previews via bat / eza
+export FZF_DEFAULT_OPTS="--height=60% --layout=reverse --border=rounded --info=inline \
+  --color=bg+:#1a1b26,bg:#1a1b26,fg:#c0caf5,hl:#7aa2f7,fg+:#c0caf5,hl+:#7aa2f7,\
+  border:#3b4261,prompt:#7aa2f7,pointer:#bb9af7,marker:#9ece6a,header:#7dcfff"
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --strict-glob --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --strict-glob --exclude .git'
+export FZF_CTRL_T_OPTS="--preview='bat --color=always --style=numbers --line-range=:200 {}'"
+export FZF_ALT_C_OPTS="--preview='eza --tree --color=always --level=2 {} | head -60'"
+
+# ─── Brew shellenv (macOS) ────────────────────────────────────────────────
+{{- if eq .chezmoi.os "darwin" }}
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+{{- end }}
+
+# ─── Completions ───────────────────────────────────────────────────────────
+fpath=(
+  $XDG_DATA_HOME/zsh/plugins/zsh-completions/src
+{{- if eq .chezmoi.os "darwin" }}
+  /opt/homebrew/share/zsh/site-functions
+{{- end }}
+  $fpath
+)
+
+autoload -Uz compinit
+# Cached compdump; rebuild at most once a day.
+_zcompdump="$XDG_CACHE_HOME/zsh/zcompdump-${ZSH_VERSION}"
+if [[ -n "$_zcompdump"(#qN.mh+24) ]]; then
+  compinit -d "$_zcompdump"
+else
+  compinit -C -d "$_zcompdump"
+fi
+
+zstyle ':completion:*' menu no                                    # fzf-tab handles the menu
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*' verbose true
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+# fzf-tab niceties
+zstyle ':fzf-tab:complete:cd:*'             fzf-preview 'eza --tree --color=always --level=2 $realpath | head -60'
+zstyle ':fzf-tab:complete:*:*'              fzf-preview 'bat --color=always --style=numbers --line-range=:200 $realpath 2>/dev/null || eza --color=always $realpath 2>/dev/null'
+zstyle ':fzf-tab:*'                         switch-group ',' '.'
+zstyle ':fzf-tab:*'                         fzf-flags --height=60% --layout=reverse --border=rounded
+zstyle ':fzf-tab:complete:git-checkout:*'   fzf-preview 'git log --color=always --oneline -20 $word 2>/dev/null'
+
+# ─── Plugins (managed by chezmoiexternal) ─────────────────────────────────
+ZSH_PLUGINS="$XDG_DATA_HOME/zsh/plugins"
+
+# Order matters: fzf-tab before syntax-highlighting; substring-search after.
+[[ -r "$ZSH_PLUGINS/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] \
+  && source "$ZSH_PLUGINS/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -r "$ZSH_PLUGINS/fzf-tab/fzf-tab.plugin.zsh" ]] \
+  && source "$ZSH_PLUGINS/fzf-tab/fzf-tab.plugin.zsh"
+[[ -r "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
+  && source "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[[ -r "$ZSH_PLUGINS/zsh-history-substring-search/zsh-history-substring-search.zsh" ]] \
+  && source "$ZSH_PLUGINS/zsh-history-substring-search/zsh-history-substring-search.zsh"
+
+# ─── Modern CLI tooling ────────────────────────────────────────────────────
+command -v starship >/dev/null && eval "$(starship init zsh)"
+command -v zoxide   >/dev/null && eval "$(zoxide init zsh --cmd cd)"
+command -v atuin    >/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
+command -v mise     >/dev/null && eval "$(mise activate zsh)"
+command -v direnv   >/dev/null && eval "$(direnv hook zsh)"
+command -v fzf      >/dev/null && source <(fzf --zsh) 2>/dev/null
+
+# Tool completions (loaded lazily — `gh`/`kubectl`/`helm` are slow to dump)
+command -v gh       >/dev/null && eval "$(gh completion -s zsh 2>/dev/null)"
+command -v kubectl  >/dev/null && source <(kubectl completion zsh 2>/dev/null)
+command -v helm     >/dev/null && source <(helm completion zsh 2>/dev/null)
+
+# ─── Aliases ───────────────────────────────────────────────────────────────
+alias ls='ls --color=auto 2>/dev/null || ls -G'
+command -v eza >/dev/null && {
+  alias ls='eza --group-directories-first --icons=auto'
+  alias ll='eza -lah --git --group-directories-first --icons=auto'
+  alias lt='eza --tree --level=2 --icons=auto'
+  alias tree='eza --tree --icons=auto'
+}
+command -v bat  >/dev/null && alias cat='bat --paging=never --style=plain'
+command -v rg   >/dev/null && alias grep='rg'
+command -v fd   >/dev/null && alias find='fd'
+command -v dust >/dev/null && alias du='dust'
+command -v duf  >/dev/null && alias df='duf'
+command -v procs >/dev/null && alias ps='procs'
+command -v btop >/dev/null && alias top='btop'
+
+# git shortcuts
+alias g='git'
+alias gst='git status -sb'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gco='git checkout'
+alias gsw='git switch'
+alias gp='git pull --rebase --autostash'
+alias gpush='git push'
+alias gpf='git push --force-with-lease --force-if-includes'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gcma='git commit --amend --no-edit'
+alias glog='git lg'
+alias lg='lazygit'                          # the brew package, not the alias
+alias lzd='lazydocker'
+
+# Directory hops
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias -- -='cd -'
+
+# Kubernetes
+command -v kubectl >/dev/null && {
+  alias k='kubectl'
+  alias kx='kubectl config use-context'
+  alias kn='kubectl config set-context --current --namespace'
+  alias kgp='kubectl get pods'
+  alias kgs='kubectl get svc'
+  alias kgd='kubectl get deploy'
+  alias klog='kubectl logs -f'
+}
+
+# Personal
+alias home-jbox-connect='ssh home-jbox'
+
+# chezmoi
+alias cz='chezmoi'
+alias cze='chezmoi edit'
+alias cza='chezmoi apply -v'
+alias czd='chezmoi diff'
+alias czcd='chezmoi cd'
+alias czu='chezmoi update'
+
+# ─── Functions ─────────────────────────────────────────────────────────────
+# mkdir + cd in one shot
+take() { mkdir -p "$1" && cd "$1"; }
+
+# Universal extractor
+extract() {
+  [[ -f "$1" ]] || { echo "extract: '$1' not a file" >&2; return 1; }
+  case "$1" in
+    *.tar.bz2|*.tbz2) tar xjf "$1"   ;;
+    *.tar.gz|*.tgz)   tar xzf "$1"   ;;
+    *.tar.xz|*.txz)   tar xJf "$1"   ;;
+    *.tar.zst)        tar --zstd -xf "$1" ;;
+    *.tar)            tar xf  "$1"   ;;
+    *.bz2)            bunzip2 "$1"   ;;
+    *.gz)             gunzip  "$1"   ;;
+    *.zip)            unzip   "$1"   ;;
+    *.7z)             7z x    "$1"   ;;
+    *.rar)            unrar x "$1"   ;;
+    *)                echo "extract: unknown extension: $1" >&2; return 2 ;;
+  esac
+}
+
+# Show which process is using a port
+port() { lsof -i ":$1" -P -n; }
+
+# `man` with fzf to pick a page
+fman() { man -k . | fzf --prompt='man> ' | awk '{print $1}' | xargs -r man; }
+
+# Git: interactive branch picker (fzf)
+gcb() {
+  local b
+  b=$(git branch --sort=-committerdate --format='%(refname:short)' \
+      | fzf --prompt='checkout> ' --preview='git log --color=always --oneline -20 {}') || return
+  git checkout "$b"
+}
+
+# Git: interactive file picker → open in editor
+ge() {
+  local f
+  f=$(git ls-files | fzf --prompt='edit> ' --preview='bat --color=always --style=numbers --line-range=:200 {}') || return
+  "$EDITOR" "$f"
+}
+
+# ─── Keybindings ───────────────────────────────────────────────────────────
+bindkey -e
+bindkey '^[[A' history-substring-search-up   2>/dev/null
+bindkey '^[[B' history-substring-search-down 2>/dev/null
+bindkey '^P'   history-substring-search-up   2>/dev/null
+bindkey '^N'   history-substring-search-down 2>/dev/null
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+
+# ─── Local overrides ───────────────────────────────────────────────────────
+# Machine-specific / secret-laden bits go here; not tracked by this repo.
+# Overlay (private) repos drop a templated dot_zshrc.local.tmpl here.
+[[ -r "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

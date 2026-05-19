@@ -1,5 +1,19 @@
+# OS
 .DS_Store
-vim/spell/
-vim/.netrwhist
-vim/bundle
 Thumbs.db
+desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# chezmoi
+/.chezmoiscripts.cache
+*.age.swp
+
+# Local-only overrides (never committed)
+*.local
+.envrc.local

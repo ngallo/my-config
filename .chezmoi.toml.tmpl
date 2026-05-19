@@ -1,0 +1,29 @@
+{{- /* chezmoi config template — runs on `chezmoi init`. Prompts populate .config.toml */ -}}
+{{- $name        := promptStringOnce . "name"        "Full name"                       "Nicola Gallo" -}}
+{{- $email       := promptStringOnce . "email"       "Personal email"                  "nicolagmt@hotmail.com" -}}
+{{- $workEmail   := promptStringOnce . "workEmail"   "Work email"                      "nicola.gallo@nitroagility.com" -}}
+{{- $workOrg     := promptStringOnce . "workOrg"     "Work org slug (for git includeIf)" "nitro" -}}
+{{- $workRoot    := promptStringOnce . "workRoot"    "Work source root (under $HOME)"  "source/nitro" -}}
+{{- $githubUser  := promptStringOnce . "githubUser"  "GitHub username"                 "ngallo" -}}
+{{- $editor      := promptChoiceOnce . "editor"      "Default editor" (list "nvim" "code" "vim") "nvim" -}}
+{{- $installLevel := promptChoiceOnce . "installLevel" "Bootstrap scope" (list "minimal" "standard" "full") "standard" -}}
+
+encryption = "age"
+
+[data]
+    name         = {{ $name        | quote }}
+    email        = {{ $email       | quote }}
+    workEmail    = {{ $workEmail   | quote }}
+    workOrg      = {{ $workOrg     | quote }}
+    workRoot     = {{ $workRoot    | quote }}
+    githubUser   = {{ $githubUser  | quote }}
+    editor       = {{ $editor      | quote }}
+    installLevel = {{ $installLevel | quote }}
+
+[diff]
+    pager = "delta"
+
+[git]
+    autoAdd    = false
+    autoCommit = false
+    autoPush   = false

@@ -1,0 +1,70 @@
+# ~/.config/ghostty/config — Ghostty terminal.
+# Reference: https://ghostty.org/docs/config/reference
+
+# ─── Appearance ───────────────────────────────────────────────────────────
+theme = tokyonight
+background-opacity = 0.96
+background-blur-radius = 24
+window-padding-x = 14
+window-padding-y = 10
+window-padding-balance = true
+window-decoration = true
+window-save-state = always
+unfocused-split-opacity = 0.85
+cursor-style = block
+cursor-style-blink = false
+mouse-hide-while-typing = true
+
+# ─── Font ─────────────────────────────────────────────────────────────────
+font-family = JetBrainsMono Nerd Font
+font-size = 14
+font-thicken = true
+font-feature = +calt
+font-feature = +liga
+font-feature = +ss01
+font-feature = +ss02
+adjust-cell-height = 5%
+
+# ─── Behaviour ────────────────────────────────────────────────────────────
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+copy-on-select = clipboard
+confirm-close-surface = false
+scrollback-limit = 100000
+mouse-scroll-multiplier = 2
+clipboard-read = allow
+clipboard-write = allow
+clipboard-trim-trailing-spaces = true
+
+# ─── Tabs / splits ────────────────────────────────────────────────────────
+window-new-tab-position = end
+macos-titlebar-style = transparent
+macos-option-as-alt = left
+
+# ─── Keybinds ─────────────────────────────────────────────────────────────
+# Splits
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+keybind = cmd+w=close_surface
+keybind = cmd+shift+w=close_window
+
+# Pane navigation (vim-style with cmd)
+keybind = cmd+h=goto_split:left
+keybind = cmd+j=goto_split:bottom
+keybind = cmd+k=goto_split:top
+keybind = cmd+l=goto_split:right
+
+# Pane resize
+keybind = cmd+shift+h=resize_split:left,40
+keybind = cmd+shift+j=resize_split:down,40
+keybind = cmd+shift+k=resize_split:up,40
+keybind = cmd+shift+l=resize_split:right,40
+
+# Quick actions
+keybind = cmd+enter=toggle_fullscreen
+keybind = cmd+plus=increase_font_size:1
+keybind = cmd+minus=decrease_font_size:1
+keybind = cmd+0=reset_font_size
+
+# Scrollback search (atuin gives you something nicer; this is the fallback)
+keybind = cmd+f=toggle_window_decorations

@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# One-time cleanup of artefacts from the previous (install.sh + vim-plug) setup.
+# Idempotent: nothing happens on subsequent runs.
+# Only touches files that match the old layout precisely — won't nuke unrelated config.
+
+set -euo pipefail
+
+removed=0
+
+# Remove a path if it's a *broken* symlink (pointing into the old legacy/ dir
+# that we deleted) — never touches real files the user might still need.
+purge_broken_link() {
+  local p="$1"
+  if [[ -L "$p" && ! -e "$p" ]]; then
+    rm -f "$p"
+    echo "  ✗ removed broken symlink: $p"
+    removed=$((removed + 1))
+  fi
+}
+
+# Remove a real file that we *know* came from the old setup and is now superseded.
+purge_legacy_file() {
+  local p="$1"
+  local reason="$2"
+  if [[ -f "$p" && ! -L "$p" ]]; then
+    rm -f "$p"
+    echo "  ✗ removed $p ($reason)"
+    removed=$((removed + 1))
+  fi
+}
+
+echo "▶ Cleaning legacy artefacts from previous install.sh setup…"
+
+# Broken symlinks left over after `legacy/` was deleted from the repo.
+purge_broken_link "$HOME/.bash_profile"
+purge_broken_link "$HOME/.gitconfig"
+purge_broken_link "$HOME/.vimrc"
+purge_broken_link "$HOME/.vim/autoload/plug.vim"
+
+# Real files superseded by the new stack:
+#   - .p10k.zsh        → starship
+#   - .fzf.zsh/.bash   → `fzf --zsh` shell hook + brew install
+purge_legacy_file "$HOME/.p10k.zsh"  "powerlevel10k config — we use starship now"
+purge_legacy_file "$HOME/.fzf.zsh"   "old fzf install file — we source 'fzf --zsh'"
+purge_legacy_file "$HOME/.fzf.bash"  "old fzf install file"
+
+# Empty ~/.vim/autoload dir left over after plug.vim removal.
+if [[ -d "$HOME/.vim/autoload" && -z "$(ls -A "$HOME/.vim/autoload" 2>/dev/null)" ]]; then
+  rmdir "$HOME/.vim/autoload"
+  echo "  ✗ removed empty dir: $HOME/.vim/autoload"
+  removed=$((removed + 1))
+fi
+
+if (( removed == 0 )); then
+  echo "  (nothing to clean — fresh machine or already migrated)"
+else
+  echo "✓ Cleaned $removed legacy artefact(s)."
+fi
+
+echo "ℹ For deeper cleanup (NVM, ~/.vim/bundle, oh-my-zsh) run: just nuke-old"

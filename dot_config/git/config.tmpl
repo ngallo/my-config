@@ -1,0 +1,163 @@
+{{- /* ~/.config/git/config — primary identity + global behaviour.
+       Work overrides are layered in via includeIf on a path glob. */ -}}
+[user]
+    name  = {{ .name | quote }}
+    email = {{ .email | quote }}
+{{- if hasKey . "signingKey" }}
+    signingkey = {{ .signingKey | quote }}
+{{- end }}
+
+[includeIf "gitdir:~/{{ .workRoot }}/"]
+    path = ~/.config/git/config-work
+
+# Extension point — loaded if present. Overlay repos (private) may drop
+# additional config (signing keys, hosts, hooks) into ~/.config/git/config.local.
+[include]
+    path = ~/.config/git/config.local
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor    = {{ if eq .editor "code" }}"code --wait"{{ else }}{{ .editor | quote }}{{ end }}
+    autocrlf  = input
+    pager     = "delta --paging=auto"
+    excludesfile = ~/.config/git/ignore
+    attributesfile = ~/.config/git/attributes
+
+[interactive]
+    diffFilter = "delta --color-only"
+
+[delta]
+    navigate  = true
+    line-numbers = true
+    side-by-side = false
+    syntax-theme = "ansi"
+
+[push]
+    default     = current
+    autoSetupRemote = true
+    followTags  = true
+
+[pull]
+    ff       = only
+    rebase   = true
+
+[fetch]
+    prune       = true
+    pruneTags   = true
+    parallel    = 0
+
+[rebase]
+    autoStash    = true
+    autoSquash   = true
+    updateRefs   = true
+
+[merge]
+    conflictStyle = zdiff3
+    ff            = false
+    tool          = vscode
+
+[mergetool]
+    keepBackup = false
+
+[mergetool "vscode"]
+    cmd = "code --wait $MERGED"
+
+[diff]
+    algorithm     = histogram
+    colorMoved    = default
+    renames       = copies
+    mnemonicprefix = true
+    tool          = vscode
+
+[difftool "vscode"]
+    cmd = "code --wait --diff $LOCAL $REMOTE"
+
+[rerere]
+    enabled    = true
+    autoupdate = true
+
+[column]
+    ui = auto
+
+[branch]
+    sort = -committerdate
+
+[tag]
+    sort = version:refname
+
+[help]
+    autocorrect = prompt
+
+[credential]
+{{- if eq .chezmoi.os "darwin" }}
+    helper = osxkeychain
+{{- else }}
+    helper = store
+{{- end }}
+
+[color "sh"]
+    branch = auto
+
+# ─── Aliases ───────────────────────────────────────────────────────────────
+[alias]
+    # Concise logs
+    lg    = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+    lgf   = log         --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+    lgH   = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%H%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+    lgfH  = log         --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%H%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(green)- %an%C(reset)%C(auto)%d%C(reset)' --all
+    lgv   = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    lgfv  = log         --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    lgHv  = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%H%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    lgfHv = log         --abbrev-commit --decorate --format=format:'%C(bold blue)%H%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    showfiles = "!f() { git show --pretty='' --name-status \"$1\"; }; f"
+
+    # Daily workflow
+    st    = status -sb
+    co    = checkout
+    sw    = switch
+    br    = branch --sort=-committerdate
+    cm    = commit -m
+    cma   = commit --amend --no-edit
+    cmf   = commit --fixup
+    pf    = push --force-with-lease --force-if-includes
+    please = push --force-with-lease --force-if-includes
+    undo  = reset --soft HEAD~1
+    nuke  = "!git clean -fd && git reset --hard"
+    last  = log -1 HEAD --stat
+    aliases = config --get-regexp ^alias\\.
+    root  = rev-parse --show-toplevel
+    staged = diff --staged
+    unstage = reset HEAD --
+    discard = checkout --
+
+    # WIP commits (drafts) — wip + unwip pair
+    wip   = "!git add -A && git commit --no-verify -m 'wip [skip ci]'"
+    unwip = "!git log -n 1 --format=%s | grep -q '^wip' && git reset HEAD~1 || (echo 'last commit is not a wip' && false)"
+
+    # Search
+    find  = "!f() { git ls-files | grep -i \"$1\"; }; f"
+    grep-history = "!f() { git log -S\"$1\" --oneline; }; f"
+
+    # Branch hygiene
+    recent = for-each-ref --sort=-committerdate --count=20 --format='%(color:bold blue)%(refname:short)%(color:reset) - %(color:green)(%(committerdate:relative))%(color:reset) %(color:dim white)%(authorname)%(color:reset)' refs/heads/
+    sync  = "!git fetch --all --prune && git rebase origin/$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|origin/||')"
+    cleanup = "!git branch --merged | egrep -v '(^\\*|main|master|develop)' | xargs -n 1 git branch -d"
+    prune-all = "!git fetch --all --prune && git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -D"
+
+    # Stash power-ups
+    save  = "!git add -A && git stash push -u -m"
+    pop   = stash pop
+    snapshot = "!git stash push -u -m \"snapshot: $(date +%FT%T)\" && git stash apply 'stash@{0}'"
+
+    # Inspection
+    tree  = "!f() { git ls-tree -r --name-only \"${1:-HEAD}\"; }; f"
+    contributors = shortlog -sne --no-merges
+    today = log --since='1 day ago' --oneline --author="{{ .email }}"
+    week  = log --since='1 week ago' --oneline --author="{{ .email }}"
+
+    # GitHub integration (requires `gh`)
+    pr    = "!gh pr create --fill --web"
+    prs   = "!gh pr list"
+    issue = "!gh issue create --web"

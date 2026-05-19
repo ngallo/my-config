@@ -1,0 +1,24 @@
+# Global gitattributes — normalisation & diff hints.
+
+* text=auto eol=lf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary
+
+# Better diff hunks for these langs
+*.go    diff=golang
+*.py    diff=python
+*.rb    diff=ruby
+*.rs    diff=rust
+*.md    diff=markdown
+*.tex   diff=tex

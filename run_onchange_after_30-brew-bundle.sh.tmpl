@@ -1,0 +1,19 @@
+{{- /* Re-run only when Brewfile content changes. macOS only. */ -}}
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+set -euo pipefail
+
+if ! command -v brew >/dev/null 2>&1; then
+  echo "brew not installed yet; skipping Brewfile apply." >&2
+  exit 0
+fi
+
+{{ if eq .installLevel "minimal" -}}
+echo "installLevel=minimal — skipping brew bundle." >&2
+exit 0
+{{- else -}}
+echo "▶ brew bundle --file={{ .chezmoi.homeDir }}/Brewfile"
+brew bundle --file="{{ .chezmoi.homeDir }}/Brewfile" --no-lock --cleanup=false
+{{- end }}
+{{ end -}}

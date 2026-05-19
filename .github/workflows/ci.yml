@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        run: |
+          shopt -s globstar nullglob
+          fail=0
+          for f in **/*.sh **/*.sh.tmpl; do
+            echo "▶ $f"
+            shellcheck -x "$f" || fail=1
+          done
+          exit $fail
+
+  chezmoi:
+    name: chezmoi-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install chezmoi
+        run: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+
+      - name: Render & verify (dry-run, no apply)
+        env:
+          CHEZMOI_NAME: "CI User"
+          CHEZMOI_EMAIL: "ci@example.com"
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          chezmoi init --source=. \
+            --promptString name="$CHEZMOI_NAME" \
+            --promptString email="$CHEZMOI_EMAIL" \
+            --promptString workEmail="ci-work@example.com" \
+            --promptString workOrg="ci" \
+            --promptString workRoot="src/ci" \
+            --promptString githubUser="ci-bot" \
+            --promptChoice editor=nvim \
+            --promptChoice installLevel=minimal \
+            --apply=false
+          chezmoi verify --source=.
+          chezmoi diff   --source=. || true

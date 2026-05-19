@@ -1,0 +1,11 @@
+{{- /* Loaded by main config via [includeIf "gitdir:~/<workRoot>/"]. */ -}}
+[user]
+    name  = {{ .name      | quote }}
+    email = {{ .workEmail | quote }}
+
+# Add work-only signing key, hosts, or hooks below as needed.
+# Example:
+# [user]
+#     signingkey = ABCDEF1234567890
+# [commit]
+#     gpgsign = true

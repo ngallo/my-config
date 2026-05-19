@@ -1,0 +1,18 @@
+# Files in the repo that chezmoi should NOT manage / apply
+README.md
+LICENSE
+Justfile
+.editorconfig
+.gitattributes
+.gitignore
+.github
+docs
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Apply Brewfile only on macOS
+{{- if ne .chezmoi.os "darwin" }}
+Brewfile
+{{- end }}
