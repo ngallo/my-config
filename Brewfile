@@ -82,5 +82,5 @@ cask "rectangle"                     # window manager
 # cask "docker"                      # Docker Desktop — install manually
 cask "raycast"
 cask "keepassxc"                     # password manager (offline DB)
-cask "bitwarden"                     # password manager (cloud)
+# cask "bitwarden"                   # password manager — install manually
 cask "font-jetbrains-mono-nerd-font"
