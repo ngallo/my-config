@@ -20,8 +20,11 @@ return {
   },
 
   -- Treesitter — syntax-aware highlighting / indent
+  -- Pin to `master` branch: the new `main` branch (v1.0) removed the
+  -- `nvim-treesitter.configs` module that this opts block relies on.
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "master",
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
     opts = {
