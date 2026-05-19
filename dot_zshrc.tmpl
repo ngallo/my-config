@@ -121,6 +121,7 @@ command -v eza >/dev/null && {
 }
 command -v bat  >/dev/null && alias cat='bat --paging=never --style=plain'
 command -v rg   >/dev/null && alias grep='rg'
+command -v nvim >/dev/null && { alias vim='nvim'; alias vi='nvim'; }
 command -v fd   >/dev/null && alias find='fd'
 command -v dust >/dev/null && alias du='dust'
 command -v duf  >/dev/null && alias df='duf'
