@@ -9,24 +9,27 @@ return {
       }},
     },
     config = function()
-      local lsp = require("lspconfig")
       local caps = vim.lsp.protocol.make_client_capabilities()
+      local servers = { "lua_ls", "bashls", "pyright", "ts_ls", "gopls" }
 
-      local on_attach = function(_, buf)
-        local map = function(lhs, rhs, desc)
-          vim.keymap.set("n", lhs, rhs, { buffer = buf, desc = desc })
-        end
-        map("gd",  vim.lsp.buf.definition,      "Go to definition")
-        map("gr",  vim.lsp.buf.references,      "References")
-        map("K",   vim.lsp.buf.hover,           "Hover")
-        map("<leader>rn", vim.lsp.buf.rename,   "Rename")
-        map("<leader>ca", vim.lsp.buf.code_action, "Code action")
-        map("[d",  vim.diagnostic.goto_prev,    "Prev diagnostic")
-        map("]d",  vim.diagnostic.goto_next,    "Next diagnostic")
-      end
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local map = function(lhs, rhs, desc)
+            vim.keymap.set("n", lhs, rhs, { buffer = args.buf, desc = desc })
+          end
+          map("gd",         vim.lsp.buf.definition,    "Go to definition")
+          map("gr",         vim.lsp.buf.references,    "References")
+          map("K",          vim.lsp.buf.hover,         "Hover")
+          map("<leader>rn", vim.lsp.buf.rename,        "Rename")
+          map("<leader>ca", vim.lsp.buf.code_action,   "Code action")
+          map("[d",         function() vim.diagnostic.jump({ count = -1, float = true }) end, "Prev diagnostic")
+          map("]d",         function() vim.diagnostic.jump({ count =  1, float = true }) end, "Next diagnostic")
+        end,
+      })
 
-      for _, srv in ipairs({ "lua_ls", "bashls", "pyright", "ts_ls", "gopls" }) do
-        lsp[srv].setup({ on_attach = on_attach, capabilities = caps })
+      for _, srv in ipairs(servers) do
+        vim.lsp.config(srv, { capabilities = caps })
+        vim.lsp.enable(srv)
       end
     end,
   },
