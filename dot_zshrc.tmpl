@@ -37,9 +37,7 @@ export MANROFFOPT="-c"
 export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
 # fzf — global defaults & previews via bat / eza
-export FZF_DEFAULT_OPTS="--height=60% --layout=reverse --border=rounded --info=inline \
-  --color=bg+:#1a1b26,bg:#1a1b26,fg:#c0caf5,hl:#7aa2f7,fg+:#c0caf5,hl+:#7aa2f7,\
-  border:#3b4261,prompt:#7aa2f7,pointer:#bb9af7,marker:#9ece6a,header:#7dcfff"
+export FZF_DEFAULT_OPTS="--height=60% --layout=reverse --border=rounded --info=inline --color=bg+:#1a1b26,bg:#1a1b26,fg:#c0caf5,hl:#7aa2f7,fg+:#c0caf5,hl+:#7aa2f7,border:#3b4261,prompt:#7aa2f7,pointer:#bb9af7,marker:#9ece6a,header:#7dcfff"
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --strict-glob --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --strict-glob --exclude .git'
