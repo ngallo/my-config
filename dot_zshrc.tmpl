@@ -112,10 +112,10 @@ command -v helm     >/dev/null && source <(helm completion zsh 2>/dev/null)
 # ─── Aliases ───────────────────────────────────────────────────────────────
 alias ls='ls --color=auto 2>/dev/null || ls -G'
 command -v eza >/dev/null && {
-  alias ls='eza --group-directories-first --icons=auto'
-  alias ll='eza -lah --git --group-directories-first --icons=auto'
-  alias lt='eza --tree --level=2 --icons=auto'
-  alias tree='eza --tree --icons=auto'
+  alias ls='eza --group-directories-first --no-icons'
+  alias ll='eza -lah --git --group-directories-first --no-icons'
+  alias lt='eza --tree --level=2 --no-icons'
+  alias tree='eza --tree --no-icons'
 }
 command -v bat  >/dev/null && alias cat='bat --paging=never --style=plain'
 command -v rg   >/dev/null && alias grep='rg'
