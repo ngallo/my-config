@@ -4,24 +4,11 @@ add_newline = true
 command_timeout = 1000
 
 format = """
-$os\
-$username\
-[@](dimmed) \
-$hostname\
-[ in ](dimmed)\
 $directory\
 $git_branch\
 $git_status\
 $git_state\
-$nodejs\
-$python\
-$rust\
-$golang\
-$java\
-$docker_context\
-$kubernetes\
 $cmd_duration\
-$line_break\
 $character"""
 
 [character]
@@ -62,19 +49,18 @@ format        = "[$hostname](bold red)"
 disabled      = false
 
 [kubernetes]
-disabled = false
-format   = "on [⛵ $context](dimmed green) "
+disabled = true
 
 [docker_context]
-format = "via [🐳 $context](blue bold) "
+disabled = true
 
 [nodejs]
-format = "via [⬢ $version](bold green) "
+disabled = true
 [python]
-format = "via [🐍 $version](bold green) "
+disabled = true
 [rust]
-format = "via [🦀 $version](bold red) "
+disabled = true
 [golang]
-format = "via [🐹 $version](bold cyan) "
+disabled = true
 [java]
-format = "via [☕ $version](red dimmed) "
+disabled = true
