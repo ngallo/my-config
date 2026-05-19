@@ -79,7 +79,7 @@ brew "bitwarden-cli"     # `bw` — used by chezmoi `{{ bitwarden ... }}` templa
 cask "ghostty"                       # terminal
 cask "visual-studio-code"
 cask "rectangle"                     # window manager
-cask "docker"                        # Docker Desktop (daemon + GUI)
+# cask "docker"                      # Docker Desktop — install manually
 cask "raycast"
 cask "keepassxc"                     # password manager (offline DB)
 cask "bitwarden"                     # password manager (cloud)
