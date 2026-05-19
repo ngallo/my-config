@@ -19,7 +19,7 @@ edit FILE:
 # Pull upstream + apply + brew bundle
 update:
     chezmoi update -v
-    @if [ "$(uname)" = "Darwin" ]; then brew bundle --file=~/Brewfile --no-lock; fi
+    @if [ "$(uname)" = "Darwin" ]; then brew bundle --file=~/Brewfile; fi
 
 # Sanity check: templates parse, files apply cleanly
 doctor:
